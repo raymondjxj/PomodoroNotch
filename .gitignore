@@ -1,0 +1,6 @@
+.build/
+*.app
+DerivedData/
+*.icns
+.DS_Store
+/Applications/
