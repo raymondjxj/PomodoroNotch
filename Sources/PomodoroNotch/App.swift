@@ -228,12 +228,11 @@ final class AppState: ObservableObject {
         nc.publisher(for: .pomodoroPhaseCompleted).receive(on: DispatchQueue.main)
             .sink { [weak self] notification in
                 guard let self else { return }
-                // Use the phase from userInfo — it's the phase that JUST completed
                 let completedPhase = (notification.userInfo?["phase"] as? TimerPhase) ?? self.timer.phase
                 if case .focus = completedPhase {
                     self.stats.recordPomodoro(seconds: self.preferences.focusDuration * 60)
                 }
-                self.notifications.notifyPhaseCompleted(phase: completedPhase, focusSeconds: self.stats.todayStats.totalFocusSeconds)
+                self.notifications.notifyPhaseCompleted(phase: completedPhase)
                 self.sound.playComplete()
             }.store(in: &cancellables)
         nc.publisher(for: .pomodoroTick).receive(on: DispatchQueue.main)

@@ -27,7 +27,7 @@ final class NotificationManager: NSObject, @preconcurrency UNUserNotificationCen
         }
     }
 
-    func notifyPhaseCompleted(phase: TimerPhase, focusSeconds: Int) {
+    func notifyPhaseCompleted(phase: TimerPhase) {
         let mode = preferences.notificationMode
         guard mode != .off, Bundle.main.bundleIdentifier != nil else { return }
 

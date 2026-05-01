@@ -14,14 +14,6 @@ final class PreferencesStore: ObservableObject {
 
     enum NotificationMode: String, CaseIterable {
         case soundAndBanner, soundOnly, bannerOnly, off
-        var label: String {
-            switch self {
-            case .soundAndBanner: return L10n.tr("sound_banner")
-            case .soundOnly:      return L10n.tr("sound_only")
-            case .bannerOnly:     return L10n.tr("banner_only")
-            case .off:            return L10n.tr("off")
-            }
-        }
     }
 
     var notificationMode: NotificationMode {
@@ -30,11 +22,5 @@ final class PreferencesStore: ObservableObject {
 
     enum DisplayMode: String, CaseIterable {
         case timeOnly, timeWithIcon
-        var label: String {
-            switch self {
-            case .timeOnly:     return L10n.tr("time_only")
-            case .timeWithIcon: return L10n.tr("time_with_icon")
-            }
-        }
     }
 }

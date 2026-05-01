@@ -62,10 +62,6 @@ enum L10n {
         UserDefaults.standard.string(forKey: languageKey) ?? "auto"
     }
 
-    static func setLanguage(_ code: String) {
-        UserDefaults.standard.set(code, forKey: languageKey)
-    }
-
     private static func langPrefix(_ identifier: String) -> String {
         if identifier.hasPrefix("zh-Hant") || identifier.hasPrefix("zh-HK") || identifier.hasPrefix("zh-TW") { return "zh-Hant" }
         if identifier.hasPrefix("zh") { return "zh-Hans" }
