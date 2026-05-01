@@ -24,9 +24,7 @@ jobs:
           cp .build/release/PomodoroNotch .build/release/PomodoroNotch.app/Contents/MacOS/
 
           # Copy icon
-          if [ -f Resources/AppIcon.icns ]; then
-            cp Resources/AppIcon.icns .build/release/PomodoroNotch.app/Contents/Resources/
-          fi
+          cp Assets/AppIcon.icns .build/release/PomodoroNotch.app/Contents/Resources/
 
           cat > .build/release/PomodoroNotch.app/Contents/Info.plist << 'EOF'
           <?xml version="1.0" encoding="UTF-8"?>
@@ -45,6 +43,8 @@ jobs:
               <string>${{ github.ref_name }}</string>
               <key>CFBundleShortVersionString</key>
               <string>${{ github.ref_name }}</string>
+              <key>CFBundleIconFile</key>
+              <string>AppIcon</string>
               <key>CFBundlePackageType</key>
               <string>APPL</string>
               <key>LSMinimumSystemVersion</key>
