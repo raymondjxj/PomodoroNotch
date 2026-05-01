@@ -1,0 +1,80 @@
+name: Build DMG
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build release binary
+        run: swift build -c release --arch arm64
+
+      - name: Create .app bundle
+        run: |
+          mkdir -p .build/release/PomodoroNotch.app/Contents/MacOS
+          mkdir -p .build/release/PomodoroNotch.app/Contents/Resources
+          cp .build/release/PomodoroNotch .build/release/PomodoroNotch.app/Contents/MacOS/
+
+          # Copy icon
+          if [ -f Resources/AppIcon.icns ]; then
+            cp Resources/AppIcon.icns .build/release/PomodoroNotch.app/Contents/Resources/
+          fi
+
+          cat > .build/release/PomodoroNotch.app/Contents/Info.plist << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>PomodoroNotch</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.pomodoro.notch</string>
+              <key>CFBundleName</key>
+              <string>番茄时钟</string>
+              <key>CFBundleDisplayName</key>
+              <string>番茄时钟</string>
+              <key>CFBundleVersion</key>
+              <string>${{ github.ref_name }}</string>
+              <key>CFBundleShortVersionString</key>
+              <string>${{ github.ref_name }}</string>
+              <key>CFBundlePackageType</key>
+              <string>APPL</string>
+              <key>LSMinimumSystemVersion</key>
+              <string>14.0</string>
+              <key>LSUIElement</key>
+              <true/>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Ad-hoc sign app
+        run: codesign --force --sign - .build/release/PomodoroNotch.app
+
+      - name: Create DMG
+        run: |
+          mkdir -p staging
+          cp -R .build/release/PomodoroNotch.app staging/
+          ln -s /Applications staging/Applications
+          hdiutil create -volname "番茄时钟" \
+              -srcfolder staging \
+              -ov -format UDZO \
+              PomodoroNotch.dmg
+          codesign --force --sign - PomodoroNotch.dmg
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: PomodoroNotch-${{ github.ref_name }}
+          path: PomodoroNotch.dmg
+
+      - name: Attach to Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: PomodoroNotch.dmg
+          generate_release_notes: true
