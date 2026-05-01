@@ -10,7 +10,7 @@
 
 **The Pomodoro timer that doesn't get in your way.** Lives in the menu bar. Keyboard-driven. Uses less than 5MB of RAM. No accounts, no cloud, no distractions.
 
-<img alt="主界面" src="Assets/主界面.png" width="600">
+<img alt="主界面" src="Assets/main.png" width="600">
 
 ---
 
@@ -36,12 +36,12 @@ Neither respects your focus. A timer should be invisible until you need it, inst
 ## What it looks like
 
 <p align="center">
-  <img alt="主界面" src="Assets/主界面.png" width="600"><br>
+  <img alt="主界面" src="Assets/main.png" width="600"><br>
   <em>Click the timer to open the dropdown panel — large countdown, one-tap controls, today's stats, weekly chart.</em>
 </p>
 
 <p align="center">
-  <img alt="偏好设置" src="Assets/偏好设置.png" width="400"><br>
+  <img alt="偏好设置" src="Assets/Preferences.png" width="400"><br>
   <em>Preferences: configure durations, notifications, 12 tick sounds (with live preview), shortcuts, and language.</em>
 </p>
 
