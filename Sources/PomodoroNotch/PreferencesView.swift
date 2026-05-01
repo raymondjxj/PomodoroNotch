@@ -6,136 +6,101 @@ struct PreferencesView: View {
 
     var body: some View {
         Form {
-            // MARK: Timer
-            Section { sectionHeader(L10n.tr("timer"), "timer") }
-            pickerRow(L10n.tr("focus_duration"), $preferences.focusDuration,
-                [1, 5, 10, 15, 20, 25, 30, 40, 50, 60, 90, 120]) { "\($0) \(L10n.tr("minutes_unit"))" }
-            pickerRow(L10n.tr("short_break_duration"), $preferences.shortBreakDuration,
-                [1, 3, 5, 10, 15, 20, 25, 30]) { "\($0) \(L10n.tr("minutes_unit"))" }
-            pickerRow(L10n.tr("long_break_duration"), $preferences.longBreakDuration,
-                [5, 10, 15, 20, 25, 30, 45, 60]) { "\($0) \(L10n.tr("minutes_unit"))" }
-            pickerRow(L10n.tr("long_break_interval"), $preferences.longBreakInterval,
-                Array(2...6)) { String(format: L10n.tr("every_n_pomodoros"), $0) }
-
-            // MARK: Behavior
-            Section { sectionHeader(L10n.tr("behavior"), "gearshape.arrow.triangle.2.circlepath") }
-            toggleRow(L10n.tr("auto_start_next"), $preferences.autoStartNext)
-            toggleRow(L10n.tr("launch_at_login"), $preferences.launchAtLogin)
-
-            // MARK: Notifications
-            Section { sectionHeader(L10n.tr("notifications"), "bell") }
-            pickerRow(L10n.tr("notification_mode"), $preferences.notificationModeRaw,
-                PreferencesStore.NotificationMode.allCases.map(\.rawValue)) { code in
-                PreferencesStore.NotificationMode(rawValue: code)?.label ?? code
-            }
-            toggleRow(L10n.tr("tick_enabled"), $preferences.tickEnabled)
-            if preferences.tickEnabled {
-                HStack(spacing: 8) {
-                    Picker(L10n.tr("tick_sound"), selection: $preferences.tickSound) {
-                        ForEach(SoundPlayer.availableSounds, id: \.self) { name in
-                            Text(name).tag(name)
-                        }
+            Section {
+                Picker(L10n.tr("focus_duration"), selection: $preferences.focusDuration) {
+                    ForEach([1, 5, 10, 15, 20, 25, 30, 40, 50, 60, 90, 120], id: \.self) { m in
+                        Text("\(m) \(L10n.tr("minutes_unit"))").tag(m)
                     }
-                    .id(language)
-                    .labelsHidden()
-                    Button(action: { SoundPlayer.playPreview(named: preferences.tickSound) }) {
-                        Image(systemName: "play.circle.fill").font(.system(size: 16))
-                    }
-                    .buttonStyle(.plain)
                 }
-            }
-            footnote(tickDescription)
+                Picker(L10n.tr("short_break_duration"), selection: $preferences.shortBreakDuration) {
+                    ForEach([1, 3, 5, 10, 15, 20, 25, 30], id: \.self) { m in
+                        Text("\(m) \(L10n.tr("minutes_unit"))").tag(m)
+                    }
+                }
+                Picker(L10n.tr("long_break_duration"), selection: $preferences.longBreakDuration) {
+                    ForEach([5, 10, 15, 20, 25, 30, 45, 60], id: \.self) { m in
+                        Text("\(m) \(L10n.tr("minutes_unit"))").tag(m)
+                    }
+                }
+                Picker(L10n.tr("long_break_interval"), selection: $preferences.longBreakInterval) {
+                    ForEach(2...6, id: \.self) { n in
+                        Text(String(format: L10n.tr("every_n_pomodoros"), n)).tag(n)
+                    }
+                }
+            } header: { SectionLabel(L10n.tr("timer"), "timer") }
 
-            // MARK: Appearance
-            Section { sectionHeader(L10n.tr("appearance"), "paintpalette") }
-            pickerRow(L10n.tr("display_mode"), $preferences.displayMode,
-                PreferencesStore.DisplayMode.allCases.map(\.rawValue)) { code in
-                PreferencesStore.DisplayMode(rawValue: code)?.label ?? code
-            }
-            footnote(L10n.tr("example_\(preferences.displayMode == "timeWithIcon" ? "time_icon" : "time_only")"))
+            Section {
+                Toggle(L10n.tr("auto_start_next"), isOn: $preferences.autoStartNext).toggleStyle(.switch)
+                Toggle(L10n.tr("launch_at_login"), isOn: $preferences.launchAtLogin).toggleStyle(.switch)
+            } header: { SectionLabel(L10n.tr("behavior"), "gearshape.arrow.triangle.2.circlepath") }
 
-            // MARK: Language
-            Section { sectionHeader(L10n.tr("language"), "globe") }
-            pickerRow(nil, $language, L10n.supportedLanguages.map(\.code)) { code in
-                L10n.supportedLanguages.first(where: { $0.code == code })?.name ?? code
-            }
-            footnote(L10n.tr("language_hint"))
+            Section {
+                Picker(L10n.tr("notification_mode"), selection: $preferences.notificationModeRaw) {
+                    ForEach(PreferencesStore.NotificationMode.allCases, id: \.rawValue) { mode in
+                        Text(mode.label).tag(mode.rawValue)
+                    }
+                }
+                Toggle(L10n.tr("tick_enabled"), isOn: $preferences.tickEnabled).toggleStyle(.switch)
+                if preferences.tickEnabled {
+                    HStack {
+                        Picker(L10n.tr("tick_sound"), selection: $preferences.tickSound) {
+                            ForEach(SoundPlayer.availableSounds, id: \.self) { Text($0).tag($0) }
+                        }
+                        .id(language)
+                        Button(action: { SoundPlayer.playPreview(named: preferences.tickSound) }) {
+                            Image(systemName: "play.circle.fill").font(.system(size: 16))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            } header: { SectionLabel(L10n.tr("notifications"), "bell") }
+            footer: { Text(L10n.tr("tick_description")).font(.system(size: 11)).foregroundColor(.secondary) }
 
-            // MARK: Shortcuts
-            Section { sectionHeader(L10n.tr("shortcuts"), "command") }
-            shortcutRow(L10n.tr("shortcut_toggle"), "⌃  ⌥  ⌘  P")
-            shortcutRow(L10n.tr("shortcut_skip"), "⌃  ⌥  ⌘  S")
-            shortcutRow(L10n.tr("shortcut_reset"), "⌃  ⌥  ⌘  R")
-            footnote(L10n.tr("accessibility_hint"))
+            Section {
+                Picker(L10n.tr("display_mode"), selection: $preferences.displayMode) {
+                    ForEach(PreferencesStore.DisplayMode.allCases, id: \.rawValue) { mode in
+                        Text(mode.label).tag(mode.rawValue)
+                    }
+                }
+            } header: { SectionLabel(L10n.tr("appearance"), "paintpalette") }
+            footer: { Text(displayPreview).font(.system(size: 11)).foregroundColor(.secondary) }
 
-            // MARK: About
-            Section { sectionHeader(L10n.tr("about"), "info.circle") }
-            infoRow("PomodoroNotch", "v1.0.0")
-            infoRow("© 2026 raymondjxj", "")
+            Section {
+                Picker(L10n.tr("language"), selection: $language) {
+                    ForEach(L10n.supportedLanguages, id: \.code) { lang in Text(lang.name).tag(lang.code) }
+                }
+                .id(language)
+            } header: { SectionLabel(L10n.tr("language"), "globe") }
+
+            Section {
+                shortcutRow(L10n.tr("shortcut_toggle"), "⌃ ⌥ ⌘ P")
+                shortcutRow(L10n.tr("shortcut_skip"), "⌃ ⌥ ⌘ S")
+                shortcutRow(L10n.tr("shortcut_reset"), "⌃ ⌥ ⌘ R")
+            } header: { SectionLabel(L10n.tr("shortcuts"), "command") }
+            footer: { Text(L10n.tr("accessibility_hint")).font(.system(size: 11)).foregroundColor(.secondary) }
+
+            Section {
+                HStack { Text("PomodoroNotch").font(.system(size: 12)).foregroundColor(.secondary); Spacer(); Text("v1.0.0").font(.system(size: 12)).foregroundColor(.secondary) }
+            } header: { SectionLabel(L10n.tr("about"), "info.circle") }
         }
         .formStyle(.grouped)
-        .frame(width: 460, height: 620)
-        .scrollDisabled(false)
-    }
-
-    // MARK: - Row Components (uniform height = 28pt)
-
-    private func sectionHeader(_ title: String, _ icon: String) -> some View {
-        Label(title, systemImage: icon)
-            .font(.system(size: 11, weight: .semibold))
-            .foregroundColor(.secondary)
-            .textCase(.uppercase)
-            .padding(.bottom, -4)
-    }
-
-    private func toggleRow(_ label: String, _ binding: Binding<Bool>) -> some View {
-        Toggle(isOn: binding) { Text(label) }
-            .toggleStyle(.switch)
+        .frame(minWidth: 440, idealWidth: 460, minHeight: 560, idealHeight: 600)
     }
 
     private func shortcutRow(_ label: String, _ keys: String) -> some View {
-        HStack {
-            Text(label)
-            Spacer()
-            Text(keys)
-                .font(.system(size: 12, design: .monospaced))
-                .foregroundColor(.secondary)
-        }
+        HStack { Text(label); Spacer(); Text(keys).font(.system(size: 12, design: .monospaced)).foregroundColor(.secondary) }
     }
 
-    private func infoRow(_ label: String, _ value: String) -> some View {
-        HStack {
-            Text(label).font(.system(size: 12)).foregroundColor(.secondary)
-            if !value.isEmpty {
-                Spacer()
-                Text(value).font(.system(size: 12)).foregroundColor(.secondary)
-            }
-        }
+    private var displayPreview: String {
+        let mode = PreferencesStore.DisplayMode(rawValue: preferences.displayMode) ?? .timeOnly
+        return mode == .timeWithIcon ? L10n.tr("example_time_icon") : L10n.tr("example_time_only")
     }
+}
 
-    private func pickerRow<T: Hashable>(_ label: String?, _ binding: Binding<T>, _ items: [T], _ title: @escaping (T) -> String) -> some View {
-        Picker(selection: binding) {
-            ForEach(items, id: \.self) { item in
-                Text(title(item)).tag(item)
-            }
-        } label: {
-            if let label { Text(label) }
-        }
-        .id(language)
-    }
-
-    private func footnote(_ text: String) -> some View {
-        HStack(spacing: 6) {
-            Text(text)
-                .font(.system(size: 11))
-                .foregroundColor(.secondary)
-        }
-    }
-
-    private var tickDescription: String {
-        if preferences.tickEnabled {
-            return L10n.tr("tick_description")
-        }
-        return L10n.tr("tick_description")
+private struct SectionLabel: View {
+    let title: String; let icon: String
+    init(_ t: String, _ i: String) { title = t; icon = i }
+    var body: some View {
+        Label(title, systemImage: icon).font(.system(size: 11, weight: .semibold)).foregroundColor(.secondary)
     }
 }
