@@ -12,21 +12,25 @@ struct PreferencesView: View {
                         Text("\(m) \(L10n.tr("minutes_unit"))").tag(m)
                     }
                 }
+                .id(language)
                 Picker(L10n.tr("short_break_duration"), selection: $preferences.shortBreakDuration) {
                     ForEach([1, 3, 5, 10, 15, 20, 25, 30], id: \.self) { m in
                         Text("\(m) \(L10n.tr("minutes_unit"))").tag(m)
                     }
                 }
+                .id(language)
                 Picker(L10n.tr("long_break_duration"), selection: $preferences.longBreakDuration) {
                     ForEach([5, 10, 15, 20, 25, 30, 45, 60], id: \.self) { m in
                         Text("\(m) \(L10n.tr("minutes_unit"))").tag(m)
                     }
                 }
+                .id(language)
                 Picker(L10n.tr("long_break_interval"), selection: $preferences.longBreakInterval) {
                     ForEach(2...6, id: \.self) { n in
                         Text(String(format: L10n.tr("every_n_pomodoros"), n)).tag(n)
                     }
                 }
+                .id(language)
             } header: { SectionLabel(L10n.tr("timer"), "timer") }
 
             Section {
@@ -36,10 +40,12 @@ struct PreferencesView: View {
 
             Section {
                 Picker(L10n.tr("notification_mode"), selection: $preferences.notificationModeRaw) {
-                    ForEach(PreferencesStore.NotificationMode.allCases, id: \.rawValue) { mode in
-                        Text(mode.label).tag(mode.rawValue)
-                    }
+                    Text(L10n.tr("sound_banner")).tag("soundAndBanner")
+                    Text(L10n.tr("sound_only")).tag("soundOnly")
+                    Text(L10n.tr("banner_only")).tag("bannerOnly")
+                    Text(L10n.tr("off")).tag("off")
                 }
+                .id(language)
                 Toggle(L10n.tr("tick_enabled"), isOn: $preferences.tickEnabled).toggleStyle(.switch)
                 if preferences.tickEnabled {
                     HStack {
@@ -58,10 +64,10 @@ struct PreferencesView: View {
 
             Section {
                 Picker(L10n.tr("display_mode"), selection: $preferences.displayMode) {
-                    ForEach(PreferencesStore.DisplayMode.allCases, id: \.rawValue) { mode in
-                        Text(mode.label).tag(mode.rawValue)
-                    }
+                    Text(L10n.tr("time_only")).tag("timeOnly")
+                    Text(L10n.tr("time_with_icon")).tag("timeWithIcon")
                 }
+                .id(language)
             } header: { SectionLabel(L10n.tr("appearance"), "paintpalette") }
             footer: { Text(displayPreview).font(.system(size: 11)).foregroundColor(.secondary) }
 

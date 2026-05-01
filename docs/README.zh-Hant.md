@@ -1,18 +1,65 @@
-# 番茄時鐘 (PomodoroNotch)
-> 極簡 macOS 選單列 Pomodoro 計時器。零依賴。
+# 🍅 番茄時鐘 · PomodoroNotch
 
-## 功能
-- 選單列倒數顯示，顏色區分狀態（橙=專注/綠=休息/灰=暫停）
-- 兩種模式：`24:59` 或 `🍅 25m`
-- 番茄狀態機：專注→短休息→專注→長休息→循環
-- 12 種 tick 音效，含即時試聽
-- 全域快速鍵 `⌃⌥⌘P/S/R`
-- 系統通知，睡眠感知，登入自啟
-- 11 種語言支援
+**不干擾你工作的番茄計時器。** 常駐選單列、全鍵盤操作、記憶體佔用不到 5MB。無帳號、無雲端、無干擾。
+
+## 為什麼又一個番茄鐘？
+
+市面上的番茄鐘大多有兩個問題：Electron 寫的佔用 500MB RAM 還推訂閱制、網頁版的淹沒在分頁海中根本找不到。好的計時器應該隱形於工作流之中——想看時一眼即見、想操作時一鍵即達。
+
+PomodoroNotch 的做法：原生 SwiftUI 選單列應用、`⌃⌥⌘P` 全域快速鍵、零網路請求、全部原始碼只有 7 個檔案約 1,000 行。
+
+## 選單列狀態
+
+| 階段 | 顯示 | 顏色 |
+|------|------|------|
+| 閒置 | `·`（低調灰點） | 灰色半透明 |
+| 專注 | `24:59` 或 `🍅 25m` | 暖橙 #FF6B35 |
+| 短休息 | `04:32` 或 `☕ 5m` | 綠色 #34C759 |
+| 長休息 | `14:32` 或 `🛋 15m` | 綠色 #34C759 |
+| 暫停 | 呼吸動畫閃爍 | 灰色 #8E8E93 |
 
 ## 安裝
-下載 [DMG](https://github.com/raymondjxj/PomodoroNotch/releases/latest)
+
+從 [Releases](https://github.com/raymondjxj/PomodoroNotch/releases/latest) 下載 DMG，拖入 `/Applications`。
+
 ```bash
-git clone https://github.com/raymondjxj/PomodoroNotch.git && cd PomodoroNotch && make run
+git clone https://github.com/raymondjxj/PomodoroNotch.git
+cd PomodoroNotch && make run
 ```
-MIT
+
+## 全域快速鍵
+
+| 快速鍵 | 操作 |
+|--------|------|
+| `⌃⌥⌘P` | 開始 / 暫停 / 繼續 |
+| `⌃⌥⌘S` | 跳過目前階段 |
+| `⌃⌥⌘R` | 重設計時器 |
+
+首次使用需在系統設定 → 隱私與安全性 → 輔助功能 中授權。
+
+## 番茄循環
+
+閒置 → 點擊開始 → 專注（預設 25 分鐘）→ 短休息（5 分鐘）→ 專注 → ... → 每第 4 個番茄觸發長休息（15 分鐘）
+
+所有時長可在偏好設定中自訂。Mac 休眠時計時器暫停，喚醒後自動計算經過時間。
+
+## 功能詳情
+
+- **下拉面板**：32pt 大字倒數、一鍵播放/暫停/跳過、今日統計與週柱狀圖
+- **Tick 音效**：最後 60 秒每秒一聲輕響，12 種系統音效可選，含即時試聽
+- **通知**：聲音+橫幅 / 僅聲音 / 僅橫幅 / 關閉，勿擾模式仍播放完成音效
+- **統計**：存在本機 `~/Library/Application Support/PomodoroNotch/stats.json`
+- **狀態持久化**：每次狀態變更即時存入 UserDefaults，重啟後精準恢復
+- **11 種語言**：自動偵測系統語言，亦可在偏好設定中手動選擇
+
+## 架構
+
+7 個 Swift 檔案、零外部依賴。遞迴 enum `TimerPhase` 實現狀態機，NotificationCenter 解耦各模組，`@AppStorage` 管理偏好設定。
+
+## 常見問題
+
+**選單列沒顯示？** macOS 26+ 須在系統設定 → 控制中心 底部手動開啟「番茄時鐘」的選單列顯示。
+
+**快速鍵無效？** 確認輔助功能權限已授權，且無其他應用佔用 `⌃⌥⌘P/S/R`。
+
+MIT © [raymondjxj](https://github.com/raymondjxj)
