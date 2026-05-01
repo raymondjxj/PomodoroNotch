@@ -316,7 +316,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 440, height: 560),
+            contentRect: NSRect(x: 0, y: 0, width: 460, height: 640),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
@@ -327,7 +327,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         window.level = .floating
         window.contentView = NSHostingView(
             rootView: PreferencesView(preferences: preferences)
-                .frame(width: 440, height: 560)
+                .frame(width: 460, height: 640)
                 .tint(.blue)
         )
         window.delegate = self
