@@ -2,163 +2,206 @@ import SwiftUI
 
 struct PreferencesView: View {
     @ObservedObject var preferences: PreferencesStore
+    @AppStorage("prefs.language") private var language: String = "auto"
 
     var body: some View {
-        TabView {
-            TimerTab(preferences: preferences)
-                .tabItem { Label("计时", systemImage: "timer") }
-            AppearanceTab(preferences: preferences)
-                .tabItem { Label("外观", systemImage: "paintpalette") }
-            NotificationsTab(preferences: preferences)
-                .tabItem { Label("通知", systemImage: "bell") }
-            ShortcutsTab()
-                .tabItem { Label("快捷键", systemImage: "command") }
-        }
-        .frame(width: 420, height: 440)
-        .tint(.blue)
-    }
-}
-
-// MARK: - Timer Tab
-
-private struct TimerTab: View {
-    @ObservedObject var preferences: PreferencesStore
-
-    var body: some View {
-        Form {
-            Section("计时") {
-                Picker("专注时长", selection: $preferences.focusDuration) {
-                    ForEach([1, 5, 10, 15, 20, 25, 30, 40, 50, 60, 90, 120], id: \.self) { m in
-                        Text("\(m) 分钟").tag(m)
-                    }
-                }
-                Picker("短休息时长", selection: $preferences.shortBreakDuration) {
-                    ForEach([1, 3, 5, 10, 15, 20, 25, 30], id: \.self) { m in
-                        Text("\(m) 分钟").tag(m)
-                    }
-                }
-                Picker("长休息时长", selection: $preferences.longBreakDuration) {
-                    ForEach([5, 10, 15, 20, 25, 30, 45, 60], id: \.self) { m in
-                        Text("\(m) 分钟").tag(m)
-                    }
-                }
-                Picker("长休息间隔", selection: $preferences.longBreakInterval) {
-                    ForEach(2...6, id: \.self) { n in
-                        Text("每 \(n) 个番茄").tag(n)
-                    }
-                }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
+                timerSection
+                Divider().padding(.horizontal, 16)
+                behaviorSection
+                Divider().padding(.horizontal, 16)
+                notificationSection
+                Divider().padding(.horizontal, 16)
+                appearanceSection
+                Divider().padding(.horizontal, 16)
+                shortcutsSection
+                Divider().padding(.horizontal, 16)
+                languageSection
+                Divider().padding(.horizontal, 16)
+                aboutSection
             }
-            Section("行为") {
-                Toggle("自动开始下一阶段", isOn: $preferences.autoStartNext)
-                    .toggleStyle(.switch)
-                Toggle("登录时自动启动", isOn: $preferences.launchAtLogin)
-                    .toggleStyle(.switch)
-            }
+            .padding(.vertical, 8)
         }
-        .formStyle(.grouped)
+        .frame(width: 420, height: 520)
     }
 
-}
+    // MARK: - Timer
 
-// MARK: - Appearance Tab
-
-private struct AppearanceTab: View {
-    @ObservedObject var preferences: PreferencesStore
-
-    var body: some View {
-        Form {
-            Section("菜单栏显示") {
-                Picker("显示模式", selection: $preferences.displayMode) {
-                    ForEach(PreferencesStore.DisplayMode.allCases, id: \.rawValue) { mode in
-                        Text(mode.label).tag(mode.rawValue)
-                    }
+    private var timerSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionHeader(L10n.tr("timer"))
+            labeledPicker(L10n.tr("focus_duration"), selection: $preferences.focusDuration) {
+                ForEach([1, 5, 10, 15, 20, 25, 30, 40, 50, 60, 90, 120], id: \.self) { m in
+                    Text("\(m) \(L10n.tr("minutes_unit"))").tag(m)
                 }
-                Text(previewDescription)
-                    .font(.system(size: 11))
-                    .foregroundColor(.secondary)
+            }
+            labeledPicker(L10n.tr("short_break_duration"), selection: $preferences.shortBreakDuration) {
+                ForEach([1, 3, 5, 10, 15, 20, 25, 30], id: \.self) { m in
+                    Text("\(m) \(L10n.tr("minutes_unit"))").tag(m)
+                }
+            }
+            labeledPicker(L10n.tr("long_break_duration"), selection: $preferences.longBreakDuration) {
+                ForEach([5, 10, 15, 20, 25, 30, 45, 60], id: \.self) { m in
+                    Text("\(m) \(L10n.tr("minutes_unit"))").tag(m)
+                }
+            }
+            labeledPicker(L10n.tr("long_break_interval"), selection: $preferences.longBreakInterval) {
+                ForEach(2...6, id: \.self) { n in
+                    Text(String(format: L10n.tr("every_n_pomodoros"), n)).tag(n)
+                }
             }
         }
-        .formStyle(.grouped)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
     }
 
-    private var previewDescription: String {
+    // MARK: - Behavior
+
+    private var behaviorSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionHeader(L10n.tr("behavior"))
+            Toggle(L10n.tr("auto_start_next"), isOn: $preferences.autoStartNext)
+            Toggle(L10n.tr("launch_at_login"), isOn: $preferences.launchAtLogin)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+    }
+
+    // MARK: - Notifications
+
+    private var notificationSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionHeader(L10n.tr("notifications"))
+            labeledPicker(L10n.tr("notification_mode"), selection: $preferences.notificationModeRaw) {
+                ForEach(PreferencesStore.NotificationMode.allCases, id: \.rawValue) { mode in
+                    Text(mode.label).tag(mode.rawValue)
+                }
+            }
+            Toggle(L10n.tr("tick_enabled"), isOn: $preferences.tickEnabled)
+            if preferences.tickEnabled {
+                HStack {
+                    Picker(L10n.tr("tick_sound"), selection: $preferences.tickSound) {
+                        ForEach(SoundPlayer.availableSounds, id: \.self) { name in
+                            Text(name).tag(name)
+                        }
+                    }
+                    Button(action: { SoundPlayer.playPreview(named: preferences.tickSound) }) {
+                        Image(systemName: "play.circle")
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            Text(L10n.tr("tick_description"))
+                .font(.system(size: 11))
+                .foregroundColor(.secondary)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+    }
+
+    // MARK: - Appearance
+
+    private var appearanceSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionHeader(L10n.tr("appearance"))
+            labeledPicker(L10n.tr("display_mode"), selection: $preferences.displayMode) {
+                ForEach(PreferencesStore.DisplayMode.allCases, id: \.rawValue) { mode in
+                    Text(mode.label).tag(mode.rawValue)
+                }
+            }
+            Text(displayPreview)
+                .font(.system(size: 11))
+                .foregroundColor(.secondary)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+    }
+
+    private var displayPreview: String {
         switch PreferencesStore.DisplayMode(rawValue: preferences.displayMode) ?? .timeOnly {
-        case .timeOnly:     return "示例: 24:59"
-        case .timeWithIcon: return "示例: 🍅 24:59"
+        case .timeOnly:     return L10n.tr("example_time_only")
+        case .timeWithIcon: return L10n.tr("example_time_icon")
         }
     }
-}
 
-// MARK: - Notifications Tab
+    // MARK: - Shortcuts
 
-private struct NotificationsTab: View {
-    @ObservedObject var preferences: PreferencesStore
-
-    var body: some View {
-        Form {
-            Section("通知方式") {
-                Picker("通知方式", selection: $preferences.notificationModeRaw) {
-                    ForEach(PreferencesStore.NotificationMode.allCases, id: \.rawValue) { mode in
-                        Text(mode.label).tag(mode.rawValue)
-                    }
-                }
-            }
-            Section("音效") {
-                Toggle("最后 60 秒 tick 音效", isOn: $preferences.tickEnabled)
-                    .toggleStyle(.switch)
-                if preferences.tickEnabled {
-                    HStack {
-                        Picker("提示音", selection: $preferences.tickSound) {
-                            ForEach(SoundPlayer.availableSounds, id: \.self) { name in
-                                Text(name).tag(name)
-                            }
-                        }
-                        Button(action: {
-                            SoundPlayer.playPreview(named: preferences.tickSound)
-                        }) {
-                            Image(systemName: "play.circle")
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                Text("倒计时最后 60 秒，每秒播放短促提示音")
-                    .font(.system(size: 11))
-                    .foregroundColor(.secondary)
-            }
+    private var shortcutsSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionHeader(L10n.tr("shortcuts"))
+            shortcutRow(L10n.tr("shortcut_toggle"), "⌃ ⌥ ⌘ P")
+            shortcutRow(L10n.tr("shortcut_skip"), "⌃ ⌥ ⌘ S")
+            shortcutRow(L10n.tr("shortcut_reset"), "⌃ ⌥ ⌘ R")
+            Text(L10n.tr("accessibility_hint"))
+                .font(.system(size: 11))
+                .foregroundColor(.secondary)
         }
-        .formStyle(.grouped)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
     }
-}
 
-// MARK: - Shortcuts Tab
-
-private struct ShortcutsTab: View {
-    var body: some View {
-        Form {
-            Section {
-                LabeledContent("开始 / 暂停") {
-                    Text("⌃ ⌥ ⌘ P")
-                        .font(.system(.body, design: .monospaced))
-                        .foregroundColor(.secondary)
-                }
-                LabeledContent("跳过") {
-                    Text("⌃ ⌥ ⌘ S")
-                        .font(.system(.body, design: .monospaced))
-                        .foregroundColor(.secondary)
-                }
-                LabeledContent("重置") {
-                    Text("⌃ ⌥ ⌘ R")
-                        .font(.system(.body, design: .monospaced))
-                        .foregroundColor(.secondary)
-                }
-            } header: {
-                Text("全局快捷键")
-            } footer: {
-                Text("需要辅助功能权限才能使用全局快捷键。可在 系统设置 → 隐私与安全性 → 辅助功能 中授权。")
-                    .font(.system(size: 11))
-                    .foregroundColor(.secondary)
-            }
+    private func shortcutRow(_ label: String, _ key: String) -> some View {
+        HStack {
+            Text(label)
+            Spacer()
+            Text(key)
+                .font(.system(.body, design: .monospaced))
+                .foregroundColor(.secondary)
         }
-        .formStyle(.grouped)
+    }
+
+    // MARK: - Language
+
+    private var languageSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionHeader(L10n.tr("language"))
+            Picker(L10n.tr("language"), selection: $language) {
+                ForEach(L10n.supportedLanguages, id: \.code) { lang in
+                    Text(lang.name).tag(lang.code)
+                }
+            }
+            Text(L10n.tr("language_hint"))
+                .font(.system(size: 11))
+                .foregroundColor(.secondary)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+    }
+
+    // MARK: - About
+
+    private var aboutSection: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            sectionHeader(L10n.tr("about"))
+            Text("PomodoroNotch v1.0.0")
+                .font(.system(size: 12))
+                .foregroundColor(.secondary)
+            Text("© 2026 raymondjxj")
+                .font(.system(size: 11))
+                .foregroundColor(.secondary)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+    }
+
+    // MARK: - Helpers
+
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title)
+            .font(.system(size: 11, weight: .semibold))
+            .foregroundColor(.secondary)
+            .textCase(.uppercase)
+    }
+
+    private func labeledPicker<Content: View>(_ label: String, selection: Binding<some Hashable>, @ViewBuilder content: () -> Content) -> some View {
+        HStack {
+            Text(label)
+            Spacer()
+            Picker("", selection: selection) { content() }
+                .labelsHidden()
+                .frame(width: 160)
+                .id(language) // force rebuild picker options on language change
+        }
     }
 }

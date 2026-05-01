@@ -48,6 +48,7 @@ struct TimerLabel: View {
 struct DropdownPanel: View {
     @ObservedObject var timer: PomodoroTimer
     @ObservedObject var stats: StatisticsStore
+    @AppStorage("prefs.language") private var language: String = "auto"
 
     var body: some View {
         VStack(spacing: 0) {
@@ -74,12 +75,12 @@ struct DropdownPanel: View {
 
     private var statusTitle: String {
         switch timer.phase {
-        case .idle:                         return "准备开始"
-        case .focus:                        return "专注 · 第 \(timer.currentRound) 个番茄"
-        case .shortBreak:                   return "短休息"
-        case .longBreak:                    return "长休息"
-        case .paused(.focus):               return "专注已暂停"
-        case .paused:                       return "休息已暂停"
+        case .idle:                         return L10n.tr("ready")
+        case .focus:                        return String(format: L10n.tr("focus_round"), timer.currentRound)
+        case .shortBreak:                   return L10n.tr("short_break")
+        case .longBreak:                    return L10n.tr("long_break")
+        case .paused(.focus):               return L10n.tr("focus_paused")
+        case .paused:                       return L10n.tr("break_paused")
         }
     }
 
@@ -102,7 +103,7 @@ struct DropdownPanel: View {
         HStack(spacing: 16) {
             controlButton(icon: primaryIcon, label: primaryLabel, shortcut: "⌃⌥⌘P", action: timer.startOrPause)
             if timer.phase != .idle {
-                controlButton(icon: "forward.fill", label: "跳过", shortcut: "⌃⌥⌘S", action: timer.skip)
+                controlButton(icon: "forward.fill", label: L10n.tr("skip"), shortcut: "⌃⌥⌘S", action: timer.skip)
             }
         }
     }
@@ -111,7 +112,7 @@ struct DropdownPanel: View {
         (timer.phase == .idle || timer.phase.isPaused) ? "play.fill" : "pause.fill"
     }
     private var primaryLabel: String {
-        timer.phase == .idle ? "开始" : timer.phase.isPaused ? "继续" : "暂停"
+        timer.phase == .idle ? L10n.tr("start") : timer.phase.isPaused ? L10n.tr("continue") : L10n.tr("pause")
     }
 
     private func controlButton(icon: String, label: String, shortcut: String, action: @escaping () -> Void) -> some View {
@@ -131,8 +132,8 @@ struct DropdownPanel: View {
 
     private var statsSection: some View {
         VStack(spacing: 4) {
-            statRow("🍅 今日", "\(stats.todayStats.completedPomodoros) 个番茄")
-            statRow("⏱ 总专注", formatSeconds(stats.todayStats.totalFocusSeconds))
+            statRow("🍅 \(L10n.tr("today"))", String(format: L10n.tr("pomodoros_count"), stats.todayStats.completedPomodoros))
+            statRow("⏱ \(L10n.tr("total_focus"))", formatSeconds(stats.todayStats.totalFocusSeconds))
             weeklyChart.padding(.top, 6)
         }
     }
@@ -148,7 +149,7 @@ struct DropdownPanel: View {
     private var weeklyChart: some View {
         let items = stats.weekStats
         let maxVal = max(1, items.map(\.completedPomodoros).max() ?? 1)
-        let labels = ["一","二","三","四","五","六","日"]
+        let labels = [L10n.tr("mon"), L10n.tr("tue"), L10n.tr("wed"), L10n.tr("thu"), L10n.tr("fri"), L10n.tr("sat"), L10n.tr("sun")]
         return HStack(alignment: .bottom, spacing: 4) {
             ForEach(Array(items.enumerated()), id: \.offset) { i, d in
                 VStack(spacing: 2) {
@@ -171,7 +172,7 @@ struct DropdownPanel: View {
             }) {
                 HStack {
                     Image(systemName: "gearshape").frame(width: 16)
-                    Text("偏好设置...")
+                    Text("\(L10n.tr("preferences"))...")
                     Spacer()
                 }
                 .font(.system(size: 13))
@@ -183,7 +184,7 @@ struct DropdownPanel: View {
             Button(action: { NSApp.terminate(nil) }) {
                 HStack {
                     Image(systemName: "power").frame(width: 16)
-                    Text("退出")
+                    Text(L10n.tr("quit"))
                     Spacer()
                 }
                 .font(.system(size: 13))
@@ -195,9 +196,9 @@ struct DropdownPanel: View {
     }
 
     private func formatSeconds(_ s: Int) -> String {
-        if s < 60 { return "\(s)秒" }
+        if s < 60 { return "\(s)\(L10n.tr("seconds_unit"))" }
         let h = s / 3600, m = (s % 3600) / 60
-        return h > 0 ? "\(h)h \(m)m" : "\(m) 分钟"
+        return h > 0 ? "\(h)h \(m)\(L10n.tr("minutes_unit"))" : "\(m) \(L10n.tr("minutes_unit"))"
     }
 }
 
@@ -315,18 +316,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 420, height: 440),
+            contentRect: NSRect(x: 0, y: 0, width: 440, height: 560),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
         )
-        window.title = "番茄时钟 偏好设置"
+        window.title = L10n.tr("preferences_title")
         window.center()
         window.isReleasedWhenClosed = false
         window.level = .floating
         window.contentView = NSHostingView(
             rootView: PreferencesView(preferences: preferences)
-                .frame(width: 420, height: 440)
+                .frame(width: 440, height: 560)
                 .tint(.blue)
         )
         window.delegate = self
