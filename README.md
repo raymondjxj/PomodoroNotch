@@ -10,10 +10,9 @@
 > A minimal, beautiful Pomodoro timer that lives in your Mac menu bar.
 > Zero clicks to see your remaining time. Zero dependencies.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="Assets/screenshot-dark.png">
-  <img alt="Screenshot" src="Assets/screenshot-light.png" width="600">
-</picture>
+<img alt="主界面" src="Assets/主界面.png" width="600">
+
+<img alt="偏好设置" src="Assets/偏好设置.png" width="400">
 
 ---
 
@@ -169,6 +168,13 @@ The timer ticks once per second via `Timer.scheduledTimer`. When idle, no timer 
 Yes. Build with `swift build --arch x86_64` or use the universal DMG from Releases.
 
 ---
+
+## Internationalization
+
+App UI supports 11 languages (auto-detected or manual selection):
+**简体中文 · English · 繁體中文 · Français · 日本語 · Deutsch · Italiano · Español · Português · Bahasa Indonesia · Русский**
+
+[English](docs/README.en.md) · [繁體中文](docs/README.zh-Hant.md) · [Français](docs/README.fr.md) · [日本語](docs/README.ja.md) · [Deutsch](docs/README.de.md) · [Italiano](docs/README.it.md) · [Español](docs/README.es.md) · [Português](docs/README.pt.md) · [Bahasa Indonesia](docs/README.id.md) · [Русский](docs/README.ru.md)
 
 ## License
 
