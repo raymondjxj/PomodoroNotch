@@ -12,25 +12,21 @@ struct PreferencesView: View {
                         Text("\(m) \(L10n.tr("minutes_unit"))").tag(m)
                     }
                 }
-                .id(language)
                 Picker(L10n.tr("short_break_duration"), selection: $preferences.shortBreakDuration) {
                     ForEach([1, 3, 5, 10, 15, 20, 25, 30], id: \.self) { m in
                         Text("\(m) \(L10n.tr("minutes_unit"))").tag(m)
                     }
                 }
-                .id(language)
                 Picker(L10n.tr("long_break_duration"), selection: $preferences.longBreakDuration) {
                     ForEach([5, 10, 15, 20, 25, 30, 45, 60], id: \.self) { m in
                         Text("\(m) \(L10n.tr("minutes_unit"))").tag(m)
                     }
                 }
-                .id(language)
                 Picker(L10n.tr("long_break_interval"), selection: $preferences.longBreakInterval) {
                     ForEach(2...6, id: \.self) { n in
                         Text(String(format: L10n.tr("every_n_pomodoros"), n)).tag(n)
                     }
                 }
-                .id(language)
             } header: { SectionLabel(L10n.tr("timer"), "timer") }
 
             Section {
@@ -45,14 +41,12 @@ struct PreferencesView: View {
                     Text(L10n.tr("banner_only")).tag("bannerOnly")
                     Text(L10n.tr("off")).tag("off")
                 }
-                .id(language)
                 Toggle(L10n.tr("tick_enabled"), isOn: $preferences.tickEnabled).toggleStyle(.switch)
                 if preferences.tickEnabled {
                     HStack {
                         Picker(L10n.tr("tick_sound"), selection: $preferences.tickSound) {
                             ForEach(SoundPlayer.availableSounds, id: \.self) { Text($0).tag($0) }
                         }
-                        .id(language)
                         Button(action: { SoundPlayer.playPreview(named: preferences.tickSound) }) {
                             Image(systemName: "play.circle.fill").font(.system(size: 16))
                         }
@@ -67,7 +61,6 @@ struct PreferencesView: View {
                     Text(L10n.tr("time_only")).tag("timeOnly")
                     Text(L10n.tr("time_with_icon")).tag("timeWithIcon")
                 }
-                .id(language)
             } header: { SectionLabel(L10n.tr("appearance"), "paintpalette") }
             footer: { Text(displayPreview).font(.system(size: 11)).foregroundColor(.secondary) }
 
@@ -75,7 +68,6 @@ struct PreferencesView: View {
                 Picker(L10n.tr("language"), selection: $language) {
                     ForEach(L10n.supportedLanguages, id: \.code) { lang in Text(lang.name).tag(lang.code) }
                 }
-                .id(language)
             } header: { SectionLabel(L10n.tr("language"), "globe") }
 
             Section {
@@ -90,6 +82,7 @@ struct PreferencesView: View {
             } header: { SectionLabel(L10n.tr("about"), "info.circle") }
         }
         .formStyle(.grouped)
+        .id(language) // rebuild entire form on language change
         .frame(minWidth: 440, idealWidth: 460, minHeight: 560, idealHeight: 600)
     }
 
